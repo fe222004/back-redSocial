@@ -1,43 +1,30 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { CommentEntity } from "src/entites/comment.entity";
-import { Repository } from "typeorm";
+// comment.service.ts
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreateCommentDto } from 'src/dto/create-comment.dto';
+import { Repository } from 'typeorm';
+
 
 @Injectable()
-export class CommentService{
-    constructor(@Inject('COMMENT_REPOSITORY') private readonly postRepository: Repository<CommentEntity>){
+export class CommentService {
+  constructor(
+    @InjectRepository(Comment)
+    private readonly commentRepository: Repository<Comment>,
+  ) {}
 
-    }
+  // Crear un nuevo comentario
+  async create(createCommentDto: CreateCommentDto): Promise<Comment> {
+    const comment = this.commentRepository.create(createCommentDto);
+    return await this.commentRepository.save(comment);
+  }
 
-    async finAll(){
-        const post = await this.postRepository.find();
-        return post;
-    }
+  // Obtener todos los comentarios de una publicación
+  async findByPostId(postId: string): Promise<Comment[]> {
+    return await this.commentRepository.find({ where: { postId } });
+  }
 
-    async finAOne(id: string){
-        const post = await this.postRepository.findOne({where : {id}});
-        return post;
-    }
-
-    create(payload : any ){
-        const post = this.postRepository.create()
-        post.comment = payload.comment;
-        post.comment_date = payload.comment_date;
-       
-
-        return this.postRepository.save(post);
-    }
-    async update(id: string, payload : any ){
-        const post = await this.postRepository.findOne({where : {id}})
-        post.comment = payload.comment;
-        post.comment_date = payload.comment_date;
-
-        return this.postRepository.save(post)
-        
-    }
-    async delete(id : string){
-        const post = await this.postRepository.findOne({where : {id}})
-
-        return this.postRepository.delete(id)
-        
-    }
+  // Eliminar un comentario
+  async remove(id: string): Promise<void> {
+    await this.commentRepository.delete(id);
+  }
 }

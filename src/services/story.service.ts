@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { StoryEntity } from 'src/entites/story.entity';
+import { StoryEntity } from 'src/entites/stories.entity';
 import { UserEntity } from 'src/entites/user.entity';
 import { Repository, In } from 'typeorm';
 

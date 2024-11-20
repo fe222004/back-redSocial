@@ -1,21 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { UserEntity } from './user.entity';
-import { PostEntity } from './post.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, UpdateDateColumn } from 'typeorm';
+import { Post } from './post.entity';
+import { User } from './user.entity';
 
 @Entity('comments')
-export class CommentEntity {
-    @PrimaryGeneratedColumn('uuid', { comment: 'Identificador único del comentario' })
-    id: string;
+export class Comment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ type: 'text', comment: 'Texto del comentario' })
-    comment: string;
+  @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
+  post: Post;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', comment: 'Fecha y hora del comentario' })
-    comment_date: Date;
+  @ManyToOne(() => User, (user) => user.comments)
+  user: User;
 
-    @ManyToOne(() => UserEntity, user => user.comments)
-    user: UserEntity;
+  @Column('text')
+  content: string;
 
-    @ManyToOne(() => PostEntity, post => post.comments)
-    post: PostEntity;
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

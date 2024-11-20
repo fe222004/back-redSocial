@@ -1,43 +1,46 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { CreatePostDto } from 'src/auth/dto/post.dto';
-import { PostEntity } from 'src/entites/post.entity';
-import { UserEntity } from 'src/entites/user.entity';
+// post.service.ts
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreatePostDto } from 'src/dto/create-post.dto';
+import { Post } from 'src/entites/post.entity';
 import { Repository } from 'typeorm';
+
 
 @Injectable()
 export class PostService {
   constructor(
-    @Inject('USER_REPOSITORY')
-    private readonly userRepository: Repository<UserEntity>,
-    @Inject('POST_REPOSITORY')
-    private readonly postRepository: Repository<PostEntity>,
+    @InjectRepository(Post)
+    private readonly postRepository: Repository<Post>,
   ) {}
 
-  async finAll() {
-    const posts = await this.postRepository.find({
-      relations: ['user'],
-      order: { created_at: 'DESC' },
-    }); 
-    return posts;
+  // Crear una nueva publicación
+  async create(createPostDto: CreatePostDto): Promise<Post> {
+    const post = this.postRepository.create(createPostDto);
+    return await this.postRepository.save(post);
   }
 
-  async create(createPostDto: CreatePostDto, imageFilename: string): Promise<PostEntity> {
-    const { text, tag, userId } = createPostDto;
+  // Obtener todas las publicaciones
+  async findAll(): Promise<Post[]> {
+    return await this.postRepository.find();
+  }
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  // Obtener una publicación por ID
+  async findOne(id: string): Promise<Post> {
+    return await this.postRepository.findOne({
+      where: { id }, // Aquí se pasa el ID dentro de un objeto
+    });
+  }
 
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
+  // Obtener publicaciones de un usuario
+  async findByUserId(userId: string): Promise<Post[]> {
+    return await this.postRepository
+      .createQueryBuilder('post')
+      .where('post.userId = :userId', { userId })
+      .getMany();
+  }
 
-    const newPost = new PostEntity();
-    newPost.text = text;
-    newPost.tag = tag;
-    newPost.image = imageFilename;
-    newPost.user = user;
-
-    const savedPost = await this.postRepository.save(newPost);
-
-    return savedPost;
+  // Eliminar una publicación
+  async remove(id: string): Promise<void> {
+    await this.postRepository.delete(id);
   }
 }

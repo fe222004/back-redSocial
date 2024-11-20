@@ -1,15 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
-import { RoleEntity } from './role.entity';
-import { StoryEntity } from './story.entity';
-import { StateRevisorEntity } from './stateRevisor.entity';
-import { ResolverEntity } from './resolver.entity';
-import { PostEntity } from './post.entity';
-import { CommentEntity } from './comment.entity';
-import { CountryEntity } from './country.entity';
-import { FriendshipEntity } from './friendship.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Post } from './post.entity';
+import { Follower } from './followers.entity';
+import { Like } from './like.entity';
+import { Message } from './messages.entity';
+import { Story } from './stories.entity';
+import { Comment } from './comment.entity';
+
 
 @Entity('users')
-export class UserEntity {
+export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -26,37 +25,36 @@ export class UserEntity {
   password: string;
 
   @Column({ type: 'varchar', nullable: true, comment: 'Imagen de perfil del usuario' })
-  image: string;
+  avatar: string;
 
-  @Column({ type: 'varchar', length: 200, nullable: true, comment: 'Descripción breve sobre el usuario' })
-  description: string;
+  @CreateDateColumn()
+  createdAt: Date;
+  
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-  @ManyToOne(() => CountryEntity, country => country.users)
-  country: CountryEntity;
+    // Relations
+    @OneToMany(() => Post, (post) => post.user)
+    posts: Post[]; 
+  
+    @OneToMany(() => Comment, (comment) => comment.user)
+    comments: Comment[]; 
+  
+    @OneToMany(() => Follower, (follower) => follower.follower)
+    following: Follower[];
+  
+    @OneToMany(() => Follower, (follower) => follower.followed)
+    followers: Follower[];
+  
+    @OneToMany(() => Like, (like) => like.user)
+    likes: Like[];
 
-  @ManyToOne(() => RoleEntity, role => role.users)
-  role: RoleEntity;
-
-  @OneToMany(() => StoryEntity, story => story.user)
-  stories: StoryEntity[];
-
-  @OneToMany(() => StateRevisorEntity, stateRevisor => stateRevisor.user)
-  stateRevisors: StateRevisorEntity[];
-
-  @OneToMany(() => ResolverEntity, resolver => resolver.user)
-  resolvers: ResolverEntity[];
-
-  @OneToMany(() => PostEntity, post => post.user)
-  posts: PostEntity[];
-
-  @OneToMany(() => CommentEntity, comment => comment.user)
-  comments: CommentEntity[];
-
-  @ManyToMany(() => UserEntity, user => user.friends)
-  @JoinTable({
-    name: 'friendships',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'friend_id', referencedColumnName: 'id' }
-  })
-  friends: UserEntity[];
+    @OneToMany(() => Story, (story) => story.user)
+    stories: Story[];
+  
+    @OneToMany(() => Message, (message) => message.sender)
+    sentMessages: Message[];
+  
+    @OneToMany(() => Message, (message) => message.receiver)
+    receivedMessages: Message[];
 }

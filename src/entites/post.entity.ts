@@ -1,27 +1,34 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
-import { UserEntity } from './user.entity';
-import { CommentEntity } from './comment.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne } from 'typeorm';
+import { User } from './user.entity';
+
+import { Comment } from './comment.entity';
+import { Category } from './categories.entity';
+import { Like } from './like.entity';
+
 
 @Entity('posts')
-export class PostEntity {
-    @PrimaryGeneratedColumn('uuid', { comment: 'Identificador único de la publicación' })
-    id: string;
+export class Post {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ type: 'text', comment: 'Texto de la publicación' })
-    text: string;
+  @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
+  user: User;  // Relación con User (un post es creado por un solo usuario)
 
-    @Column({ type: 'varchar', nullable: true, comment: 'Imagen opcional de la publicación' })
-    image: string;
+  @Column('text')
+  description: string;
 
-    @Column({ type: 'varchar', comment: 'Etiqueta de la publicación' })
-    tag: string;
+  @Column({ nullable: true })
+  imageUrl: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', comment: 'Fecha de creación de la historia' })
-    created_at: Date;
+  @ManyToOne(() => Category, (category) => category.posts)
+  category: Category;  // Relación con Category (un post pertenece a una categoría)
 
-    @ManyToOne(() => UserEntity, user => user.posts)
-    user: UserEntity;
+  @OneToMany(() => Like, (like) => like.post)  // Relación con los likes (un post puede tener muchos likes)
+  likes: Like[];
 
-    @OneToMany(() => CommentEntity, comment => comment.post)
-    comments: CommentEntity[];
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @OneToMany(() => Comment, (comment) => comment.post)  // Relación con los comentarios (un post puede tener muchos comentarios)
+  comments: Comment[];
 }
